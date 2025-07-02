@@ -37,7 +37,16 @@ def login():
         return jsonify({"msg": "Credenciales incorrectas"}), 401
 
     access_token = create_access_token(identity=user.id)
-    return jsonify(token=access_token, user={"id": user.id, "ident": user.identification_number}), 200
+
+    return jsonify({
+        "token": access_token,
+        "user": {
+            "id": user.id,
+            "employee_id": user.employee_id,
+            "role": user.role,
+            "name": user.name
+        }
+    }), 200
 
 @api.route('/users', methods=['POST'])
 def create_user():
@@ -57,3 +66,17 @@ def create_user():
         "name": user.name,
         "employee_id": user.employee_id
     }), 201
+
+from flask_jwt_extended import jwt_required, get_jwt_identity
+
+@api.route('/users', methods=['GET'])
+@jwt_required()
+def get_users():
+    current_user_id = get_jwt_identity()
+    users = User.query.all()
+    return jsonify([{
+        "id": u.id,
+        "name": u.name,
+        "employee_id": u.employee_id,
+        "role": u.role
+    } for u in users]), 200

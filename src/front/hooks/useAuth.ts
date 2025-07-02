@@ -1,5 +1,3 @@
-// login/logout, user info
-
 import { useState } from "react";
 import { login } from "../services/authService";
 
@@ -11,7 +9,13 @@ export const useAuth = () => {
     setLoading(true);
     try {
       const data = await login(ident, password);
+      
+      // Guardar token y datos del usuario
       localStorage.setItem("token", data.token);
+      localStorage.setItem("role", data.user.role);
+      localStorage.setItem("employee_id", data.user.employee_id);
+      localStorage.setItem("name", data.user.name);
+
       setError(null);
       return true;
     } catch (err) {
