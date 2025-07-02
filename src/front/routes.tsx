@@ -7,7 +7,7 @@ import {
 
 import { Layout } from './pages/Layout';
 import { Home } from './pages/Home';
-import { Demo } from './pages/Demo';
+import LoginPage from './pages/LoginPage';
 
 // Define the application router with typed JSX routes
 export const router = createBrowserRouter(
@@ -15,8 +15,7 @@ export const router = createBrowserRouter(
     <Route path="/" element={<Layout />} errorElement={<h1>Not found!</h1>}>
       {/* Root route */}
       <Route index element={<Home />} />
-      {/* Demo route */}
-      <Route path="demo" element={<Demo />} />
+      <Route path="loginpage" element={<LoginPage />} />
     </Route>
   )
 );
