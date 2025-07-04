@@ -9,11 +9,14 @@ export const useAuth = () => {
     setLoading(true);
     try {
       const data = await login(ident, password);
-      
+
       // Guardar token y datos del usuario
       localStorage.setItem("token", data.token);
       localStorage.setItem("role", data.user.role);
-      localStorage.setItem("employee_id", data.user.employee_id);
+      localStorage.setItem(
+        "identification_number",
+        data.user.identification_number
+      );
       localStorage.setItem("name", data.user.name);
 
       setError(null);

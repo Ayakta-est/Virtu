@@ -6,6 +6,7 @@ from api.models import db, User
 from api.utils import generate_sitemap, APIException
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from flask_cors import CORS
+from werkzeug.security import check_password_hash
 import uuid
 
 api = Blueprint('api', __name__)
@@ -42,7 +43,7 @@ def login():
         "token": access_token,
         "user": {
             "id": user.id,
-            "employee_id": user.employee_id,
+            "identification_number": user.identification_number,
             "role": user.role,
             "name": user.name
         }
@@ -54,17 +55,17 @@ def create_user():
     name = body.get("name")
     password = body.get("password")
     # genera un ID corto, estilo EMP-394FA2
-    employee_id = f"EMP-{uuid.uuid4().hex[:6].upper()}"
+    identification_number = f"EMP-{uuid.uuid4().hex[:6].upper()}"
 
     # Hashear contraseña y guardar
-    user = User(name=name, password=generate_password_hash(password), employee_id=employee_id)
+    user = User(name=name, password=generate_password_hash(password), identification_number=identification_number)
     db.session.add(user)
     db.session.commit()
 
     return jsonify({
         "id": user.id,
         "name": user.name,
-        "employee_id": user.employee_id
+        "identification_number": user.identification_number
     }), 201
 
 from flask_jwt_extended import jwt_required, get_jwt_identity
@@ -77,6 +78,6 @@ def get_users():
     return jsonify([{
         "id": u.id,
         "name": u.name,
-        "employee_id": u.employee_id,
+        "identification_number": u.identification_number,
         "role": u.role
     } for u in users]), 200

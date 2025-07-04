@@ -14,7 +14,7 @@ const LoginPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const success = await loginUser(employeeId, password);
-    if (success) navigate("/dashboard");
+    if (success) navigate("/home");
   };
 
   return (
@@ -30,7 +30,7 @@ const LoginPage = () => {
           placeholder="Identificador"
           value={employeeId}
           onChange={(e) => setEmployeeId(e.target.value)}
-          type="email"
+          type="text"
         />
 
         <Input

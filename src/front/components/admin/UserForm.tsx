@@ -8,18 +8,22 @@ interface UserFormProps {
     id?: number;
     name: string;
     password?: string;
-    employee_id?: string;
+    identification_number?: string;
   };
   onSuccess: () => void;
   onCancel?: () => void;
 }
 
-const UserForm: React.FC<UserFormProps> = ({ initialData, onSuccess, onCancel }) => {
+const UserForm: React.FC<UserFormProps> = ({
+  initialData,
+  onSuccess,
+  onCancel,
+}) => {
   const isEditing = !!initialData;
   const [form, setForm] = useState({
     name: "",
     password: "",
-    employee_id: "",
+    identification_number: "",
   });
 
   useEffect(() => {
@@ -27,7 +31,7 @@ const UserForm: React.FC<UserFormProps> = ({ initialData, onSuccess, onCancel })
       setForm({
         name: initialData.name,
         password: "",
-        employee_id: initialData.employee_id || "",
+        identification_number: initialData.identification_number || "",
       });
     }
   }, [initialData]);
@@ -75,8 +79,8 @@ const UserForm: React.FC<UserFormProps> = ({ initialData, onSuccess, onCancel })
       {isEditing && (
         <Input
           label="ID de empleado"
-          name="employee_id"
-          value={form.employee_id}
+          name="identification_number"
+          value={form.identification_number}
           readOnly
         />
       )}

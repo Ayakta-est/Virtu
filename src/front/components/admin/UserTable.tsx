@@ -4,7 +4,7 @@ import { getUsers } from "../../services/userService";
 interface User {
   id: number;
   name: string;
-  employee_id: string;
+  identification_number: string;
   role: string;
 }
 
@@ -40,9 +40,12 @@ const UserTable: React.FC<Props> = ({ refresh }) => {
         </thead>
         <tbody>
           {users.map((u) => (
-            <tr key={u.id} className="border-t border-gray-100 hover:bg-gray-50">
+            <tr
+              key={u.id}
+              className="border-t border-gray-100 hover:bg-gray-50"
+            >
               <td className="px-4 py-2">{u.name}</td>
-              <td className="px-4 py-2">{u.employee_id}</td>
+              <td className="px-4 py-2">{u.identification_number}</td>
               <td className="px-4 py-2 capitalize">{u.role}</td>
             </tr>
           ))}

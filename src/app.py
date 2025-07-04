@@ -6,11 +6,12 @@ from flask import Flask, request, jsonify, url_for, send_from_directory
 from flask_migrate import Migrate
 from flask_swagger import swagger
 from api.utils import APIException, generate_sitemap
-from api.models import db
+from api.models import db, User
 from api.routes import api
 from api.admin import setup_admin
 from api.commands import setup_commands
 from flask_jwt_extended import JWTManager
+from werkzeug.security import generate_password_hash
 
 # from models import Person
 
@@ -39,6 +40,24 @@ setup_admin(app)
 
 # add the admin
 setup_commands(app)
+
+# Crear usuario admin por defecto si no existe
+def create_default_admin():
+    with app.app_context():
+        admin = User.query.filter_by(identification_number="ADMIN001").first()
+        if not admin:
+            new_admin = User(
+                name="Administrador",
+                identification_number="ADMIN001",
+                password=generate_password_hash("admin123"),
+                is_active=True,
+                role="admin"
+            )
+            db.session.add(new_admin)
+            db.session.commit()
+            print("✔ Usuario admin creado: ADMIN001 / admin123")
+
+create_default_admin()
 
 # Add all endpoints form the API with a "api" prefix
 app.register_blueprint(api, url_prefix='/api')
@@ -73,3 +92,5 @@ def serve_any_other_file(path):
 if __name__ == '__main__':
     PORT = int(os.environ.get('PORT', 3001))
     app.run(host='0.0.0.0', port=PORT, debug=True)
+
+# para crear admin: flask create-admin --name "Ana Admin" --id "ANA001" --password "1234"
