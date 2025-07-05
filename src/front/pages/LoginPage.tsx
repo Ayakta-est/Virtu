@@ -14,7 +14,7 @@ const LoginPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const success = await loginUser(employeeId, password);
-    if (success) navigate("/home");
+    if (success) navigate("/");
   };
 
   return (
