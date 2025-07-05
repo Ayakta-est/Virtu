@@ -38,7 +38,7 @@ export default function Sidebar() {
         <nav>
           <ul className="space-y-4">
             <li>
-              <button onClick={() => goTo("/dashboardpage")} className="hover:underline">Calendario</button>
+              <button onClick={() => goTo("/employee/dashboardpage")} className="hover:underline">Calendario</button>
             </li>
             <li>
               <button onClick={() => goTo("/employee/payroll")} className="hover:underline">Nómina</button>

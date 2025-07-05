@@ -21,7 +21,7 @@ export const router = createBrowserRouter(
 
       {/* Rutas protegidas */}
       <Route
-        path="dashboardpage"
+        path="employee/dashboardpage"
         element={
           <ProtectedRoute>
             <DashboardPage />
