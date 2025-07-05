@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 type CarouselItem = {
-  id: string;
+  id: number;
   title: string;
   image: string;
   shortDescription: string;

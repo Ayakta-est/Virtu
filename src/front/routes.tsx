@@ -12,6 +12,8 @@ import UsersPage from './pages/Admin/UsersPage';
 import DashboardPage from './pages/DashboardPage';
 import NotAuthorized from './pages/NotAuthorizedPage';
 import ProtectedRoute from './components/auth/ProtectedRoute';
+import CreateNews from './pages/Admin/CreateNews';
+import EmployeeProfile from './pages/Employee/EmployeeProfile';
 
 export const router = createBrowserRouter(
   createRoutesFromElements(
@@ -36,6 +38,15 @@ export const router = createBrowserRouter(
           </ProtectedRoute>
         }
       />
+      <Route path="/admin/notices/new" element={
+        <ProtectedRoute>
+          <CreateNews />
+      </ProtectedRoute>} />
+
+      <Route path="/employee" element={
+        <ProtectedRoute>
+          <EmployeeProfile />
+      </ProtectedRoute>} />
 
       {/* Página para accesos denegados */}
       <Route path="not-authorized" element={<NotAuthorized />} />

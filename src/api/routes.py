@@ -2,7 +2,7 @@
 This module takes care of starting the API Server, Loading the DB and Adding the endpoints
 """
 from flask import Flask, request, jsonify, url_for, Blueprint
-from api.models import db, User
+from api.models import db, User, News
 from api.utils import generate_sitemap, APIException
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from flask_cors import CORS
@@ -81,3 +81,38 @@ def get_users():
         "identification_number": u.identification_number,
         "role": u.role
     } for u in users]), 200
+
+@api.route("/noticias", methods=["POST"])
+def create_news():
+    data = request.get_json()
+
+    # Validación mínima
+    required_fields = ["title", "image", "short_description", "content", "category", "link"]
+    missing = [f for f in required_fields if not data.get(f)]
+    if missing:
+        return jsonify({"error": f"Faltan campos: {', '.join(missing)}"}), 400
+
+    news = News(
+        title=data.get("title"),
+        image=data.get("image"),
+        short_description=data.get("short_description"),
+        content=data.get("content"),
+        category=data.get("category"),
+        link=data.get("link"),
+        is_featured=data.get("is_featured", False)
+    )
+
+    db.session.add(news)
+    db.session.commit()
+
+    return jsonify({"message": "Noticia creada correctamente", "id": news.id}), 201
+
+@api.route("/noticias/home", methods=["GET"])
+def get_home_news():
+    destacados = News.query.filter_by(is_featured=True).order_by(News.created_at.desc()).limit(5).all()
+    noticias = News.query.order_by(News.created_at.desc()).limit(10).all()
+
+    return jsonify({
+        "destacados": [n.serialize() for n in destacados],
+        "noticias": [n.serialize() for n in noticias]
+    })
