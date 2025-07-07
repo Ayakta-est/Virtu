@@ -10,20 +10,21 @@ export const useAuth = () => {
     try {
       const data = await login(ident, password);
 
-      // Guardar token y datos del usuario
+      // Guardar en localStorage (opcional)
       localStorage.setItem("token", data.token);
       localStorage.setItem("role", data.user.role);
-      localStorage.setItem(
-        "identification_number",
-        data.user.identification_number
-      );
+      localStorage.setItem("identification_number", data.user.identification_number);
       localStorage.setItem("name", data.user.name);
 
       setError(null);
-      return true;
+      return {
+        id: data.user.id,
+        name: data.user.name,
+        role: data.user.role,
+      };
     } catch (err) {
       setError("Credenciales incorrectas");
-      return false;
+      return null;
     } finally {
       setLoading(false);
     }

@@ -1,10 +1,13 @@
 import React, { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import useGlobalReducer from "../hooks/useGlobalReducer";
 
 export default function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
+  const { store } = useGlobalReducer();
+  const user = store.user; // rol usuario logueado
 
   const goTo = (path: string) => {
     setIsOpen(false);
@@ -54,6 +57,23 @@ export default function Sidebar() {
             </li>
           </ul>
         </nav>
+
+        {/* 👇 SOLO PARA ADMINISTRACIÓN */}
+        {user?.role === "admin" && (
+          <>
+            <hr className="my-6 border-white/30" />
+            <h3 className="text-sm text-white/60 uppercase mb-2">Administración</h3>
+            <nav>
+              <ul className="space-y-3">
+                <li>
+                  <button onClick={() => goTo("/admin/noticias")} className="hover:underline">
+                    Gestión de noticias
+                  </button>
+                </li>
+              </ul>
+            </nav>
+          </>
+        )}
       </aside>
     </>
   );

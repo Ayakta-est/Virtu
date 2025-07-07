@@ -116,3 +116,16 @@ def get_home_news():
         "destacados": [n.serialize() for n in destacados],
         "noticias": [n.serialize() for n in noticias]
     })
+
+@api.route("/notices", methods=["GET"])
+def get_all_news():
+    noticias = News.query.order_by(News.created_at.desc()).all()
+    return jsonify([n.serialize() for n in noticias])
+
+@api.route("/notices/<int:id>", methods=["DELETE"])
+def delete_news(id):
+    news = News.query.get_or_404(id)
+    db.session.delete(news)
+    db.session.commit()
+    return jsonify({"message": "Noticia eliminada"}), 200
+

@@ -4,17 +4,28 @@ import Input from "../components/ui/Input";
 import Button from "../components/ui/Button";
 import { useAuth } from "../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
+import useGlobalReducer from "../hooks/useGlobalReducer"; // 👈 importante
 
 const LoginPage = () => {
   const [employeeId, setEmployeeId] = useState("");
   const [password, setPassword] = useState("");
   const { loginUser, loading, error } = useAuth();
   const navigate = useNavigate();
+  const { dispatch } = useGlobalReducer(); // 👈 necesario para guardar el user
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const success = await loginUser(employeeId, password);
-    if (success) navigate("/");
+
+    const userData = await loginUser(employeeId, password);
+
+    if (userData) {
+      dispatch({
+        type: "SET_USER",
+        payload: userData, //contiene id, name y role
+      });
+
+      navigate("/");
+    }
   };
 
   return (
