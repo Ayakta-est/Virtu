@@ -6,7 +6,8 @@ from api.models import db, User, News
 from api.utils import generate_sitemap, APIException
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from flask_cors import CORS
-from werkzeug.security import check_password_hash
+from werkzeug.security import check_password_hash, generate_password_hash
+from flask_jwt_extended import jwt_required, get_jwt_identity
 import uuid
 
 api = Blueprint('api', __name__)
@@ -49,38 +50,52 @@ def login():
         }
     }), 200
 
-@api.route('/users', methods=['POST'])
-def create_user():
-    body = request.get_json()
-    name = body.get("name")
-    password = body.get("password")
-    # genera un ID corto, estilo EMP-394FA2
-    identification_number = f"EMP-{uuid.uuid4().hex[:6].upper()}"
-
-    # Hashear contraseña y guardar
-    user = User(name=name, password=generate_password_hash(password), identification_number=identification_number)
-    db.session.add(user)
-    db.session.commit()
-
-    return jsonify({
-        "id": user.id,
-        "name": user.name,
-        "identification_number": user.identification_number
-    }), 201
-
-from flask_jwt_extended import jwt_required, get_jwt_identity
-
-@api.route('/users', methods=['GET'])
-@jwt_required()
+@api.route("/users", methods=["GET"])
 def get_users():
-    current_user_id = get_jwt_identity()
     users = User.query.all()
     return jsonify([{
         "id": u.id,
         "name": u.name,
         "identification_number": u.identification_number,
         "role": u.role
-    } for u in users]), 200
+    } for u in users])
+
+@api.route("/users", methods=["POST"])
+def create_user():
+    data = request.json
+
+    name = data["name"]
+    password = data["password"]
+    identification_number = data.get("identification_number") or f"user_{name.lower().replace(' ', '_')}"
+    role = data.get("role", "employee")
+
+    hashed_password = generate_password_hash(password)
+
+    new_user = User(
+        name=name,
+        identification_number=identification_number,
+        password=hashed_password,
+        is_active=True,
+        role=role
+    )
+
+    db.session.add(new_user)
+    db.session.commit()
+
+    # Crear token para que pueda loguearse directamente tras crear
+    token = create_access_token(identity=new_user.id)
+
+    return jsonify({
+        "message": "Usuario creado correctamente",
+        "id": new_user.id,
+        "token": token,
+        "user": {
+            "id": new_user.id,
+            "name": new_user.name,
+            "role": new_user.role,
+            "identification_number": new_user.identification_number
+        }
+    }), 201
 
 @api.route("/noticias", methods=["POST"])
 def create_news():
@@ -129,3 +144,23 @@ def delete_news(id):
     db.session.commit()
     return jsonify({"message": "Noticia eliminada"}), 200
 
+@api.route("/notices/<int:id>", methods=["GET"])
+def get_news(id):
+    news = News.query.get_or_404(id)
+    return jsonify(news.serialize())
+
+@api.route("/notices/<int:id>", methods=["PUT"])
+def update_news(id):
+    data = request.json
+    news = News.query.get_or_404(id)
+
+    news.title = data["title"]
+    news.image = data["image"]
+    news.short_description = data["short_description"]
+    news.content = data["content"]
+    news.category = data["category"]
+    news.link = data["link"]
+    news.is_featured = data.get("is_featured", False)
+
+    db.session.commit()
+    return jsonify({"message": "Noticia actualizada"})

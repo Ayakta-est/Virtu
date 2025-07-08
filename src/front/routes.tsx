@@ -15,6 +15,7 @@ import ProtectedRoute from "./components/auth/ProtectedRoute";
 import CreateNews from "./pages/Admin/CreateNews";
 import EmployeeProfile from "./pages/Employee/EmployeeProfile";
 import NoticesList from "./pages/Admin/NoticesList";
+import EditNews from "./pages/Admin/EditNews";
 import { AdminRoute } from "./components/admin/AdminRoute";
 import { Outlet } from 'react-router-dom';
 
@@ -35,8 +36,9 @@ export const router = createBrowserRouter(
         {/* Rutas solo para administradores */}
         <Route element={<AdminRoute> <Outlet /> </AdminRoute>}>
           <Route path="admin/users" element={<UsersPage />} />
-          <Route path="admin/noticias" element={<NoticesList />} />
+          <Route path="admin/notices" element={<NoticesList />} />
           <Route path="admin/notices/new" element={<CreateNews />} />
+          <Route path="admin/notices/edit/:id" element={<NoticesList />} />
         </Route>
       </Route>
     </Route>

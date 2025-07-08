@@ -44,10 +44,14 @@ const UserForm: React.FC<UserFormProps> = ({
     e.preventDefault();
 
     if (isEditing) {
-      // TO DO: update user logic
+      // TO DO: lógica para actualizar
     } else {
       try {
-        await createUser({ name: form.name, password: form.password });
+        await createUser({
+          name: form.name,
+          password: form.password,
+          identification_number: form.identification_number || undefined,
+        });
         onSuccess();
       } catch (err) {
         console.error("Error creando usuario", err);
@@ -66,14 +70,23 @@ const UserForm: React.FC<UserFormProps> = ({
       />
 
       {!isEditing && (
-        <Input
-          label="Contraseña"
-          name="password"
-          value={form.password}
-          onChange={handleChange}
-          type="password"
-          placeholder="••••••"
-        />
+        <>
+          <Input
+            label="Contraseña"
+            name="password"
+            value={form.password}
+            onChange={handleChange}
+            type="password"
+            placeholder="••••••"
+          />
+          <Input
+            label="ID de empleado (opcional)"
+            name="identification_number"
+            value={form.identification_number}
+            onChange={handleChange}
+            placeholder="Ej: ana123"
+          />
+        </>
       )}
 
       {isEditing && (

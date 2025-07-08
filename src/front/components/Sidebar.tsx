@@ -2,12 +2,19 @@ import React, { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import useGlobalReducer from "../hooks/useGlobalReducer";
+import Modal from "../components/ui/Modal"; 
 
 export default function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
   const { store } = useGlobalReducer();
   const user = store.user; // rol usuario logueado
+  const [logoutModalOpen, setLogoutModalOpen] = useState(false);
+
+const handleLogout = () => {
+  localStorage.clear(); // o puedes borrar campos específicos si prefieres
+  navigate("/loginpage");
+};
 
   const goTo = (path: string) => {
     setIsOpen(false);
@@ -66,11 +73,29 @@ export default function Sidebar() {
             <nav>
               <ul className="space-y-3">
                 <li>
-                  <button onClick={() => goTo("/admin/noticias")} className="hover:underline">
+                  <button onClick={() => goTo("/admin/notices")} className="hover:underline">
                     Gestión de noticias
                   </button>
                 </li>
+                <li>
+                  <button onClick={() => goTo("/admin/notices/new")} className="hover:underline">
+                    Añadir noticia
+                  </button>
+                </li>
+                <li>
+                  <button onClick={() => goTo("admin/users")} className="hover:underline">
+                    Gestión de usuarios
+                  </button>
+                </li>
               </ul>
+              <div className="absolute bottom-4 left-4 right-4">
+                <button
+                  onClick={() => setLogoutModalOpen(true)}
+                  className="w-full text-left text-l text-white hover:underline"
+                >
+                  Cerrar sesión
+                </button>
+              </div>
             </nav>
           </>
         )}

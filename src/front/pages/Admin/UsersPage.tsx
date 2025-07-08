@@ -1,4 +1,3 @@
-// src/front/pages/Admin/UsersPage.tsx
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import UserForm from "../../components/admin/UserForm";

@@ -1,11 +1,23 @@
 import api from "../api/apiClient";
 
-export const createUser = async (data: { name: string; password: string }) => {
-  const res = await api.post("/users", data);
-  return res.data;
+const baseURL = import.meta.env.VITE_BACKEND_URL;
+
+export const createUser = async (user: {
+  name: string;
+  password: string;
+  identification_number?: string;
+}) => {
+  const res = await fetch(`${baseURL}/api/users`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(user),
+  });
+  if (!res.ok) throw new Error("Error al crear usuario");
+  return res.json();
 };
 
 export const getUsers = async () => {
-  const res = await api.get("/users");
-  return res.data;
+  const res = await fetch(`${baseURL}/api/users`);
+  if (!res.ok) throw new Error("Error al obtener usuarios");
+  return res.json();
 };

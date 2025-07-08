@@ -45,7 +45,7 @@ export default function NoticiasList() {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Gestión de Noticias</h1>
         <button
-          onClick={() => navigate("/admin/noticias/nueva")}
+          onClick={() => navigate("/admin/notices/new")}
           className="bg-teal-600 text-white px-4 py-2 rounded hover:bg-teal-700"
         >
           + Nueva noticia
@@ -73,7 +73,7 @@ export default function NoticiasList() {
               </td>
               <td className="p-3 space-x-2">
                 <button
-                  onClick={() => navigate(`/admin/noticias/editar/${n.id}`)}
+                  onClick={() => navigate(`/admin/notices/edit/${n.id}`)}
                   className="text-blue-600 hover:underline"
                 >
                   Editar
