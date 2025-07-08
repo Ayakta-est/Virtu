@@ -18,6 +18,7 @@ import NoticesList from "./pages/Admin/NoticesList";
 import EditNews from "./pages/Admin/EditNews";
 import { AdminRoute } from "./components/admin/AdminRoute";
 import { Outlet } from 'react-router-dom';
+import DetailNotice from './pages/DetailNotice';
 
 export const router = createBrowserRouter(
   createRoutesFromElements(
@@ -32,13 +33,14 @@ export const router = createBrowserRouter(
       <Route element={<ProtectedRoute> <Outlet /> </ProtectedRoute>}>
         <Route path="employee" element={<EmployeeProfile />} />
         <Route path="employee/dashboardpage" element={<DashboardPage />} />
+        <Route path="/notices/:id" element={<DetailNotice />} />
 
         {/* Rutas solo para administradores */}
         <Route element={<AdminRoute> <Outlet /> </AdminRoute>}>
           <Route path="admin/users" element={<UsersPage />} />
           <Route path="admin/notices" element={<NoticesList />} />
           <Route path="admin/notices/new" element={<CreateNews />} />
-          <Route path="admin/notices/edit/:id" element={<NoticesList />} />
+          <Route path="admin/notices/edit/:id" element={<EditNews />} />
         </Route>
       </Route>
     </Route>

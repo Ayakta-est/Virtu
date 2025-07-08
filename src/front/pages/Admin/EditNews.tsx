@@ -19,7 +19,18 @@ export default function EditNews() {
   useEffect(() => {
     fetch(`${baseUrl}/api/notices/${id}`)
       .then((res) => res.json())
-      .then((data) => setFormData(data))
+      .then((data) => {
+        setFormData({
+          title: data.title ?? "",
+          image: data.image ?? "",
+          short_description: data.short_description ?? "",
+          content: data.content ?? "",
+          category: data.category ?? "",
+          link: data.link ?? "",
+          is_featured: data.is_featured ?? false,
+        });
+      })
+
       .catch(() => alert("Error al cargar la noticia"));
   }, [id]);
 
@@ -64,7 +75,7 @@ export default function EditNews() {
         <input name="short_description" placeholder="Descripción corta" value={formData.short_description} onChange={handleChange} className="input" required />
         <textarea name="content" placeholder="Contenido completo" value={formData.content} onChange={handleChange} className="input h-32" required />
         <input name="category" placeholder="Categoría" value={formData.category} onChange={handleChange} className="input" required />
-        <input name="link" placeholder="Ruta interna (Ej: /noticias/3)" value={formData.link} onChange={handleChange} className="input" required />
+        <input name="link" placeholder="Ruta interna (Ej: /notices/3)" value={formData.link} onChange={handleChange} className="input" required />
         <label className="flex items-center gap-2">
           <input type="checkbox" name="is_featured" checked={formData.is_featured} onChange={handleChange} />
           ¿Mostrar en carrusel?

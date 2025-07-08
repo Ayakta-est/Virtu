@@ -35,7 +35,7 @@ export default function CreateNews() {
     e.preventDefault();
     console.log("Enviando:", formData);
 
-    const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/noticias`, {
+    const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/notices`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(formData),
@@ -57,7 +57,7 @@ export default function CreateNews() {
         <input name="short_description" placeholder="Descripción corta" value={formData.short_description} onChange={handleChange} className="input" required />
         <textarea name="content" placeholder="Contenido completo" value={formData.content} onChange={handleChange} className="input h-32" required />
         <input name="category" placeholder="Categoría (Ej. Grupo, Personas...)" value={formData.category} onChange={handleChange} className="input" required />
-        <input name="link" placeholder="Ruta (Ej. /noticias/3)" value={formData.link} onChange={handleChange} className="input" required />
+        <input name="link" placeholder="Ruta (Ej. /notices/3)" value={formData.link} onChange={handleChange} className="input" required />
         <label className="flex items-center gap-2">
           <input type="checkbox" name="is_featured" checked={formData.is_featured} onChange={handleChange} />
           ¿Mostrar en carrusel?

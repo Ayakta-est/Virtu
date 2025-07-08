@@ -16,7 +16,7 @@ type HomeNewsResponse = {
 };
 
 export async function fetchHomeNews(): Promise<HomeNewsResponse> {
-  const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/noticias/home`);
+  const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/notices/home`);
   if (!res.ok) throw new Error("Error al cargar las noticias");
   return res.json();
 }

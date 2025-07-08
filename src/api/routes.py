@@ -97,7 +97,7 @@ def create_user():
         }
     }), 201
 
-@api.route("/noticias", methods=["POST"])
+@api.route("/notices", methods=["POST"])
 def create_news():
     data = request.get_json()
 
@@ -122,7 +122,7 @@ def create_news():
 
     return jsonify({"message": "Noticia creada correctamente", "id": news.id}), 201
 
-@api.route("/noticias/home", methods=["GET"])
+@api.route("/notices/home", methods=["GET"])
 def get_home_news():
     destacados = News.query.filter_by(is_featured=True).order_by(News.created_at.desc()).limit(5).all()
     noticias = News.query.order_by(News.created_at.desc()).limit(10).all()

@@ -63,9 +63,17 @@ const handleLogout = () => {
               <button onClick={() => goTo("/contact")} className="hover:underline">Habla con nosotros</button>
             </li>
           </ul>
+          <div className="absolute bottom-4 left-4 right-4">
+            <button
+              onClick={() => setLogoutModalOpen(true)}
+              className="w-full text-left text-l text-white hover:underline"
+                >
+              Cerrar sesión
+            </button>
+          </div>
         </nav>
 
-        {/* 👇 SOLO PARA ADMINISTRACIÓN */}
+        {/* ADMINISTRACIÓN */}
         {user?.role === "admin" && (
           <>
             <hr className="my-6 border-white/30" />
@@ -88,18 +96,28 @@ const handleLogout = () => {
                   </button>
                 </li>
               </ul>
-              <div className="absolute bottom-4 left-4 right-4">
-                <button
-                  onClick={() => setLogoutModalOpen(true)}
-                  className="w-full text-left text-l text-white hover:underline"
-                >
-                  Cerrar sesión
-                </button>
-              </div>
             </nav>
           </>
         )}
       </aside>
+      {logoutModalOpen && (
+        <Modal isOpen={logoutModalOpen} onClose={() => setLogoutModalOpen(false)} title="¿Cerrar sesión?">
+          <div className="flex justify-end space-x-2">
+            <button
+              className="bg-gray-300 text-gray-800 px-4 py-2 rounded cursor-pointer"
+              onClick={() => setLogoutModalOpen(false)}
+            >
+              Cancelar
+            </button>
+            <button
+              className="bg-red-600 text-white px-4 py-2 rounded cursor-pointer"
+              onClick={handleLogout}
+            >
+              Cerrar sesión
+            </button>
+          </div>
+        </Modal>
+      )}
     </>
   );
 }

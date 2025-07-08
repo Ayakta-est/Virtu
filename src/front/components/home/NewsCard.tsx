@@ -18,7 +18,7 @@ export default function NewsCard({ item }: Props) {
 
   return (
     <div
-      onClick={() => navigate(item.link)}
+      onClick={() => navigate(`/notices/${item.id}`)}
       className="cursor-pointer rounded-xl overflow-hidden shadow hover:shadow-lg transition duration-300 bg-white"
     >
       <img

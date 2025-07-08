@@ -46,7 +46,7 @@ export default function HeroCarousel({ items }: Props) {
         src={current.image}
         alt={current.title}
         className="w-full h-full object-cover transition-opacity duration-500"
-        onClick={() => navigate(current.link)}
+        onClick={() => navigate(`/notices/${current.id}`)}
         style={{ cursor: "pointer" }}
       />
       <div className="absolute bottom-0 left-0 w-full bg-black/50 text-white p-4 backdrop-blur-sm">
