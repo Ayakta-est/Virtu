@@ -2,13 +2,14 @@
 This module takes care of starting the API Server, Loading the DB and Adding the endpoints
 """
 from flask import Flask, request, jsonify, url_for, Blueprint
-from api.models import db, User, News
+from api.models import db, User, News, CalendarEvent
 from api.utils import generate_sitemap, APIException
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from flask_cors import CORS
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 from flask_jwt_extended import jwt_required, get_jwt_identity
+from datetime import datetime
 import uuid
 import os
 
@@ -247,3 +248,42 @@ def get_current_user():
 
     except Exception as e:
         return jsonify({"error": "Error interno"}), 500
+
+@api.route("/request", methods=["POST"])
+def request_day_off():
+    data = request.get_json()
+
+    required_fields = ["user_id", "title", "start_date"]
+    for field in required_fields:
+        if field not in data:
+            return jsonify({"error": f"'{field}' es obligatorio"}), 400
+
+    user = User.query.get(data["user_id"])
+    if not user:
+        return jsonify({"error": "Usuario no encontrado"}), 404
+
+    try:
+        start_date = datetime.strptime(data["start_date"], "%Y-%m-%d").date()
+        end_date = (
+            datetime.strptime(data["end_date"], "%Y-%m-%d").date()
+            if "end_date" in data and data["end_date"]
+            else None
+        )
+
+        event = CalendarEvent(
+            user_id=user.id,
+            title=data["title"],
+            type="requested",
+            status="pending",
+            start_date=start_date,
+            end_date=end_date,
+            notes=data.get("notes"),
+        )
+        db.session.add(event)
+        db.session.commit()
+
+        return jsonify(event.serialize()), 201
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": f"Error al crear la solicitud: {str(e)}"}), 500

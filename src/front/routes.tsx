@@ -9,7 +9,7 @@ import { Layout } from "./pages/Layout";
 import { Home } from "./pages/Home";
 import LoginPage from "./pages/LoginPage";
 import UsersPage from "./pages/Admin/UsersPage";
-import DashboardPage from "./pages/DashboardPage";
+import EmployeeCalendar from "./pages/Employee/EmployeeCalendar";
 import NotAuthorized from "./pages/NotAuthorizedPage";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import CreateNews from "./pages/Admin/CreateNews";
@@ -32,7 +32,7 @@ export const router = createBrowserRouter(
       {/* Rutas protegidas para usuarios autenticados */}
       <Route element={<ProtectedRoute> <Outlet /> </ProtectedRoute>}>
         <Route path="employee" element={<EmployeeProfile />} />
-        <Route path="employee/dashboardpage" element={<DashboardPage />} />
+        <Route path="employee/calendar" element={<EmployeeCalendar />} />
         <Route path="/notices/:id" element={<DetailNotice />} />
 
         {/* Rutas solo para administradores */}

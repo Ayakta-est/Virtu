@@ -51,7 +51,7 @@ const handleLogout = () => {
               <button onClick={() => goTo("/employee")} className="hover:underline">Mi virtu</button>
             </li>
             <li>
-              <button onClick={() => goTo("/employee/dashboardpage")} className="hover:underline">Calendario</button>
+              <button onClick={() => goTo("/employee/calendar")} className="hover:underline">Calendario</button>
             </li>
             <li>
               <button onClick={() => goTo("/employee/payroll")} className="hover:underline">Nómina</button>
