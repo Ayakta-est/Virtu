@@ -30,7 +30,7 @@ def setup_commands(app):
     def insert_test_data():
         pass
 
-    # ✅ Nuevo comando: crear usuario admin desde terminal
+    # crear usuario admin desde terminal
     @app.cli.command("create-admin")
     @click.option("--name", prompt="Nombre del admin", help="Nombre del nuevo admin.")
     @click.option("--id", prompt="ID del empleado", help="Identificador único (identification_number).")

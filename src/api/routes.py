@@ -7,8 +7,10 @@ from api.utils import generate_sitemap, APIException
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from flask_cors import CORS
 from werkzeug.security import check_password_hash, generate_password_hash
+from werkzeug.utils import secure_filename
 from flask_jwt_extended import jwt_required, get_jwt_identity
 import uuid
+import os
 
 api = Blueprint('api', __name__)
 
@@ -38,7 +40,7 @@ def login():
     if not user or not check_password_hash(user.password, password):
         return jsonify({"msg": "Credenciales incorrectas"}), 401
 
-    access_token = create_access_token(identity=user.id)
+    access_token = create_access_token(identity=str(user.id))
 
     return jsonify({
         "token": access_token,
@@ -164,3 +166,48 @@ def update_news(id):
 
     db.session.commit()
     return jsonify({"message": "Noticia actualizada"})
+
+@api.route("/profile/upload-image", methods=["POST"])
+@jwt_required()
+def upload_profile_image():
+    user_id = get_jwt_identity()
+    user = User.query.get(user_id)
+
+    if "image" not in request.files:
+        return jsonify({"error": "No image uploaded"}), 400
+
+    file = request.files["image"]
+    filename = secure_filename(file.filename)
+    ext = filename.rsplit('.', 1)[-1].lower()
+    new_filename = f"user_{user.id}.{ext}"
+    filepath = os.path.join("static/profile_images", new_filename)
+    file.save(filepath)
+
+    user.profile_image = f"/static/profile_images/{new_filename}"
+    db.session.commit()
+
+    return jsonify({ "profile_image": user.profile_image })
+
+@api.route("/user/me", methods=["GET"])
+@jwt_required()
+def get_current_user():
+
+    try:
+        user_id = get_jwt_identity()
+
+        user = User.query.get(user_id)
+        if not user:
+            return jsonify({"error": "Usuario no encontrado"}), 404
+
+        return jsonify({
+            "id": user.id,
+            "name": user.name,
+            "identification_number": user.identification_number,
+            "role": user.role,
+            "profile_image": user.profile_image,
+            "workstation": user.workstation,
+            "department": user.department
+        })
+
+    except Exception as e:
+        return jsonify({"error": "Error interno"}), 500
