@@ -12,6 +12,7 @@ from api.admin import setup_admin
 from api.commands import setup_commands
 from flask_jwt_extended import JWTManager
 from werkzeug.security import generate_password_hash
+from datetime import timedelta
 
 # from models import Person
 
@@ -21,6 +22,7 @@ static_file_dir = os.path.join(os.path.dirname(
 app = Flask(__name__)
 app.url_map.strict_slashes = False
 app.config["JWT_SECRET_KEY"] = "secret-key"
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(days=6)
 jwt = JWTManager(app)
 
 # database condiguration

@@ -53,7 +53,7 @@ export default function NoticiasList() {
       </div>
 
       <table className="w-full table-auto bg-white shadow rounded">
-        <thead className="bg-gray-100 text-left">
+        <thead className="bg-[#E6D1B4] text-left">
           <tr>
             <th className="p-3">Título</th>
             <th className="p-3">Categoría</th>
@@ -64,7 +64,7 @@ export default function NoticiasList() {
         </thead>
         <tbody>
           {noticias.map((n) => (
-            <tr key={n.id} className="border-t">
+            <tr key={n.id} className="border-t border-gray-100 hover:bg-gray-50">
               <td className="p-3">{n.title}</td>
               <td className="p-3">{n.category}</td>
               <td className="p-3">{n.isFeatured ? "✅" : "—"}</td>

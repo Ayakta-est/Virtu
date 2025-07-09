@@ -99,6 +99,42 @@ def create_user():
         }
     }), 201
 
+@api.route("/users/<int:id>", methods=["DELETE"])
+def delete_user(id):
+    users = User.query.get_or_404(id)
+    db.session.delete(users)
+    db.session.commit()
+    return jsonify({"message": "Noticia eliminada"}), 200
+
+@api.route("/users/<int:id>", methods=["PATCH"])
+@jwt_required()
+def update_user_partial(id):
+    current_user_id = get_jwt_identity()
+    current_user = User.query.get(current_user_id)
+
+    if not current_user or current_user.role != "admin":
+        return jsonify({"error": "No autorizado"}), 403
+
+    user = User.query.get_or_404(id)
+    data = request.get_json()
+
+    # Solo actualizamos si el campo viene en el body
+    if "profile_image" in data:
+        user.profile_image = data["profile_image"]
+
+    if "workstation" in data:
+        user.workstation = data["workstation"]
+
+    if "department" in data:
+        user.department = data["department"]
+
+    if "is_active" in data:
+        user.is_active = data["is_active"]
+
+    db.session.commit()
+
+    return jsonify({"message": "Usuario actualizado"}), 200
+
 @api.route("/notices", methods=["POST"])
 def create_news():
     data = request.get_json()

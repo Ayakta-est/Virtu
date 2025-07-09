@@ -107,7 +107,7 @@ export default function EmployeeProfile() {
 
         <div className="bg-gray-50 rounded-lg p-4 shadow-sm">
           <label className="block text-sm font-medium text-gray-500 mb-1">Departamento</label>
-          <div className="text-gray-800">{userData.departament || "—"}</div>
+          <div className="text-gray-800">{userData.department || "—"}</div>
         </div>
       </div>
     </div>
