@@ -314,3 +314,109 @@ def get_user_calendar(identification_number):
     events = CalendarEvent.query.filter_by(user_id=user.id).all()
 
     return jsonify([event.serialize() for event in events]), 200
+
+@api.route("/admin/calendar/requests", methods=["GET"])
+@jwt_required()
+def get_all_day_off_requests():
+    current_user_id = get_jwt_identity()
+    current_user = User.query.get(current_user_id)
+
+    if not current_user or current_user.role != "admin":
+        return jsonify({"error": "No autorizado"}), 403
+
+    # Solo solicitudes tipo "requested"
+    events = CalendarEvent.query.filter_by(type="requested").order_by(CalendarEvent.start_date.desc()).all()
+
+    result = []
+    for event in events:
+        user = User.query.get(event.user_id)
+        result.append({
+            "id": event.id,
+            "user_id": user.id,
+            "user_name": user.name,
+            "identification_number": user.identification_number,
+            "title": event.title,
+            "status": event.status,
+            "start": event.start_date.isoformat(),
+            "end": event.end_date.isoformat() if event.end_date else None,
+            "notes": event.notes,
+            "created_at": event.created_at.isoformat() if event.created_at else None,
+        })
+
+    return jsonify(result), 200
+
+@api.route("/admin/calendar/requests/<int:event_id>", methods=["PUT"])
+@jwt_required()
+def update_request_status(event_id):
+    current_user_id = get_jwt_identity()
+    current_user = User.query.get(current_user_id)
+
+    if not current_user or current_user.role != "admin":
+        return jsonify({"error": "No autorizado"}), 403
+
+    data = request.get_json()
+    new_status = data.get("status")
+
+    if new_status not in ["approved", "rejected"]:
+        return jsonify({"error": "Estado inválido. Usa 'approved' o 'rejected'"}), 400
+
+    event = CalendarEvent.query.get(event_id)
+
+    if not event:
+        return jsonify({"error": "Evento no encontrado"}), 404
+
+    if event.type != "requested":
+        return jsonify({"error": "Solo se pueden modificar eventos de tipo 'requested'"}), 400
+
+    event.status = new_status
+    db.session.commit()
+
+    return jsonify({"message": f"Solicitud {new_status} correctamente"}), 200
+
+@api.route("/calendar/admin/create", methods=["POST"])
+@jwt_required()
+def admin_create_event():
+    data = request.get_json()
+
+    required_fields = ["identification_number", "type", "start_date"]
+    for field in required_fields:
+        if field not in data:
+            return jsonify({"error": f"'{field}' es obligatorio"}), 400
+
+    # Validar que quien crea el evento sea un administrador
+    current_user_id = get_jwt_identity()
+    current_user = User.query.get(current_user_id)
+
+    if not current_user or current_user.role != "admin":
+        return jsonify({"error": "No autorizado"}), 403
+
+    # Buscar el usuario destino
+    user = User.query.filter_by(identification_number=data["identification_number"]).first()
+    if not user:
+        return jsonify({"error": "Empleado no encontrado"}), 404
+
+    try:
+        start_date = datetime.strptime(data["start_date"], "%Y-%m-%d").date()
+        end_date = (
+            datetime.strptime(data["end_date"], "%Y-%m-%d").date()
+            if "end_date" in data and data["end_date"]
+            else None
+        )
+
+        event = CalendarEvent(
+            user_id=user.id,
+            title=data.get("title") or f"Evento {data['type']}",
+            type=data["type"],
+            status="approved" if data["type"] == "requested" else None,
+            start_date=start_date,
+            end_date=end_date,
+            notes=data.get("notes"),
+        )
+        db.session.add(event)
+        db.session.commit()
+
+        return jsonify(event.serialize()), 201
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": f"Error al crear evento: {str(e)}"}), 500

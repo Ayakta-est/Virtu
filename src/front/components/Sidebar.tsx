@@ -86,8 +86,8 @@ const handleLogout = () => {
                   </button>
                 </li>
                 <li>
-                  <button onClick={() => goTo("/admin/notices/new")} className="hover:underline">
-                    Añadir noticia
+                  <button onClick={() => goTo("/admin/calendar-management")} className="hover:underline">
+                    Gestión de calendarios
                   </button>
                 </li>
                 <li>

@@ -19,6 +19,9 @@ import EditNews from "./pages/Admin/EditNews";
 import { AdminRoute } from "./components/admin/AdminRoute";
 import { Outlet } from 'react-router-dom';
 import DetailNotice from './pages/DetailNotice';
+import CalendarManagementPage from "./pages/Admin/CalendarManagementPage";
+import CalendarApplicationPage from "./pages/Admin/CalendarApplicationPage";
+import AdminEmployeeCalendarPage from "./pages/Admin/AdminEmployeeCalendarPage";
 
 export const router = createBrowserRouter(
   createRoutesFromElements(
@@ -41,6 +44,9 @@ export const router = createBrowserRouter(
           <Route path="admin/notices" element={<NoticesList />} />
           <Route path="admin/notices/new" element={<CreateNews />} />
           <Route path="admin/notices/edit/:id" element={<EditNews />} />
+          <Route path="admin/calendar/application" element={<CalendarApplicationPage />} />
+          <Route path="admin/calendar-management" element={<CalendarManagementPage />} />
+          <Route path="admin/calendar/:identification_number" element={<AdminEmployeeCalendarPage />} />
         </Route>
       </Route>
     </Route>
