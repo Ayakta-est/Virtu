@@ -249,18 +249,27 @@ def get_current_user():
     except Exception as e:
         return jsonify({"error": "Error interno"}), 500
 
-@api.route("/request", methods=["POST"])
+from flask_jwt_extended import jwt_required, get_jwt_identity
+
+@api.route("/calendar/request", methods=["POST"])
+@jwt_required()
 def request_day_off():
     data = request.get_json()
 
-    required_fields = ["user_id", "title", "start_date"]
+    required_fields = ["identification_number", "title", "start_date"]
     for field in required_fields:
         if field not in data:
             return jsonify({"error": f"'{field}' es obligatorio"}), 400
 
-    user = User.query.get(data["user_id"])
+    user = User.query.filter_by(identification_number=data["identification_number"]).first()
     if not user:
         return jsonify({"error": "Usuario no encontrado"}), 404
+
+    # Validar que quien envía la solicitud es el usuario autenticado o un admin
+    current_user_id = get_jwt_identity()
+    current_user = User.query.get(current_user_id)
+    if current_user.identification_number != user.identification_number and current_user.role != "admin":
+        return jsonify({"error": "No autorizado"}), 403
 
     try:
         start_date = datetime.strptime(data["start_date"], "%Y-%m-%d").date()
@@ -287,3 +296,21 @@ def request_day_off():
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": f"Error al crear la solicitud: {str(e)}"}), 500
+
+
+@api.route("/calendar/<string:identification_number>", methods=["GET"])
+@jwt_required()
+def get_user_calendar(identification_number):
+    user = User.query.filter_by(identification_number=identification_number).first()
+
+    if not user:
+        return jsonify({"error": "Usuario no encontrado"}), 404
+
+    current_user_id = get_jwt_identity()
+    current_user = User.query.get(current_user_id)
+    if current_user.identification_number != identification_number and current_user.role != "admin":
+        return jsonify({"error": "No autorizado"}), 403
+
+    events = CalendarEvent.query.filter_by(user_id=user.id).all()
+
+    return jsonify([event.serialize() for event in events]), 200

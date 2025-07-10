@@ -1,44 +1,45 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import FullCalendar from "@fullcalendar/react";
+import { EventInput } from "@fullcalendar/core";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import EventModal from "../../components/calendar/EventModal";
-import { RequestDayModal } from "../../components/calendar/RequestDayModal"; // asumo que existe
-import { requestDayOff } from "../../components/calendar/requestDayOff"; 
-import { EventInput } from "@fullcalendar/core";
+import { RequestDayModal } from "../../components/calendar/RequestDayModal";
+import { requestDayOff, getUserCalendarEvents } from "../../services/calendar";
+import type { BackendCalendarEvent } from "../../services/calendar";
 
 type CalendarEvent = EventInput & {
   type: "worked" | "vacation" | "absence" | "requested";
   status?: "pending" | "approved" | "rejected";
   notes?: string;
 };
-export default function EmployeeCalendar({ user, token }) {
+
+export default function EmployeeCalendar() {
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
-  const handleAddEvent = async (newEventData) => {
-    try {
-      const createdEvent = await requestDayOff({
-        userId: user.id,
-        title: "Solicitud día libre",
-        startDate: newEventData.startDate,
-        endDate: newEventData.endDate,
-        notes: newEventData.notes,
-        token
-      });
+  const identificationNumber = localStorage.getItem("identification_number");
+  const token = localStorage.getItem("token");
 
-      setEvents((prev) => [...prev, {
-        ...createdEvent,
-        backgroundColor: getColor(createdEvent),
-        borderColor: getColor(createdEvent),
-      }]);
-    } catch (err) {
-      console.error("Error al solicitar día libre:", err);
-    }
-  };
+  useEffect(() => {
+    const fetchEvents = async () => {
+      if (!identificationNumber || !token) return;
 
-  function getColor(event) {
+      try {
+        const data = await getUserCalendarEvents(identificationNumber, token);
+        const enriched = data.map((event) => toCalendarEvent(event));
+        setEvents(enriched);
+      } catch (err) {
+        console.error("Error al cargar eventos:", err);
+      }
+    };
+
+    fetchEvents();
+  }, [identificationNumber, token]);
+
+  function getColor(event: CalendarEvent): string {
     switch (event.type) {
       case "worked":
         return "#d3d3d3";
@@ -51,6 +52,28 @@ export default function EmployeeCalendar({ user, token }) {
       default:
         return "#999";
     }
+  }
+
+  function toCalendarEvent(raw: BackendCalendarEvent): CalendarEvent {
+    const base = {
+      id: String(raw.id),
+      title: raw.title,
+      start: raw.start,
+      end: raw.end ?? raw.start,
+      type: raw.type,
+      status: raw.status,
+      notes: raw.notes,
+    };
+
+    return {
+      ...base,
+      backgroundColor: getColor(base),
+      borderColor: getColor(base),
+    };
+  }
+
+  if (!identificationNumber || !token) {
+    return <p className="text-center mt-10 text-gray-600">Cargando usuario...</p>;
   }
 
   return (
@@ -70,26 +93,41 @@ export default function EmployeeCalendar({ user, token }) {
         initialView="dayGridMonth"
         events={events}
         eventClick={(info) => {
-          const found = events.find(e => e.id?.toString() === info.event.id?.toString());
+          const found = events.find(
+            (e) => e.id?.toString() === info.event.id?.toString()
+          );
           if (found) {
             setSelectedEvent(found);
           }
+        }}
+        dateClick={(arg) => {
+          setSelectedDate(arg.dateStr);
+          setShowRequestModal(true);
         }}
         height="auto"
       />
 
       {selectedEvent && (
-        <EventModal event={selectedEvent} onClose={() => setSelectedEvent(null)} />
+        <EventModal
+          event={selectedEvent}
+          onClose={() => setSelectedEvent(null)}
+        />
       )}
 
       {showRequestModal && (
         <RequestDayModal
-          user={user}
+          identificationNumber={identificationNumber}
           token={token}
-          onClose={() => setShowRequestModal(false)}
-          onSuccess={(data) => {
-            handleAddEvent(data);
+          initialDate={selectedDate}
+          onClose={() => {
             setShowRequestModal(false);
+            setSelectedDate(null);
+          }}
+          onSuccess={(data) => {
+            const adapted = toCalendarEvent(data);
+            setEvents((prev) => [...prev, adapted]);
+            setShowRequestModal(false);
+            setSelectedDate(null);
           }}
         />
       )}

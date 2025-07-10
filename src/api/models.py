@@ -71,7 +71,7 @@ class CalendarEvent(db.Model):
     notes: Mapped[str] = mapped_column(Text, nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-    updated_at: Mapped[datetime] = mapped_column(DateTime, onupdate=datetime.utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, onupdate=datetime.utcnow, nullable=True)
 
     user: Mapped["User"] = relationship(back_populates="calendar_events")
 
