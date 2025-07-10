@@ -88,3 +88,31 @@ class CalendarEvent(db.Model):
             "createdAt": self.created_at.isoformat(),
             "updatedAt": self.updated_at.isoformat() if self.updated_at else None,
         }
+
+class Payroll(db.Model):
+    __tablename__ = "payrolls"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=False)
+
+    month: Mapped[str] = mapped_column(String(20), nullable=False)  # Ej: "2025-07"
+    gross_salary: Mapped[float] = mapped_column(nullable=False)
+    deductions: Mapped[float] = mapped_column(nullable=False)
+    net_salary: Mapped[float] = mapped_column(nullable=False)
+    details: Mapped[str] = mapped_column(Text, nullable=True)  # JSON string con desglose
+
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    user: Mapped["User"] = relationship()
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "userId": self.user_id,
+            "month": self.month,
+            "grossSalary": self.gross_salary,
+            "deductions": self.deductions,
+            "netSalary": self.net_salary,
+            "details": self.details,
+            "createdAt": self.created_at.isoformat(),
+        }

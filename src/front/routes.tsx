@@ -22,6 +22,8 @@ import DetailNotice from './pages/DetailNotice';
 import CalendarManagementPage from "./pages/Admin/CalendarManagementPage";
 import CalendarApplicationPage from "./pages/Admin/CalendarApplicationPage";
 import AdminEmployeeCalendarPage from "./pages/Admin/AdminEmployeeCalendarPage";
+import PayRollPage from "./pages/Employee/PayrollPage";
+import PayrollDetailPage from "./pages/Employee/PayrollDetailPage";
 
 export const router = createBrowserRouter(
   createRoutesFromElements(
@@ -37,6 +39,8 @@ export const router = createBrowserRouter(
         <Route path="employee" element={<EmployeeProfile />} />
         <Route path="employee/calendar" element={<EmployeeCalendar />} />
         <Route path="/notices/:id" element={<DetailNotice />} />
+        <Route path="employee/payroll" element={<PayRollPage />} />
+        <Route path="employee//payroll/:id" element={<PayrollDetailPage />} />
 
         {/* Rutas solo para administradores */}
         <Route element={<AdminRoute> <Outlet /> </AdminRoute>}>

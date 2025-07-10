@@ -2,7 +2,7 @@
 This module takes care of starting the API Server, Loading the DB and Adding the endpoints
 """
 from flask import Flask, request, jsonify, url_for, Blueprint
-from api.models import db, User, News, CalendarEvent
+from api.models import db, User, News, CalendarEvent, Payroll
 from api.utils import generate_sitemap, APIException
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from flask_cors import CORS
@@ -83,6 +83,24 @@ def create_user():
     )
 
     db.session.add(new_user)
+    db.session.flush()  # Obtenemos el ID sin hacer commit aún
+
+    # ✅ Crear nómina por defecto solo para empleados
+    if role == "employee":
+        from datetime import date
+        from models import Payroll
+
+        month = date.today().strftime("%Y-%m")
+        default_payroll = Payroll(
+            user_id=new_user.id,
+            month=month,
+            base_salary=1200.00,
+            bonuses=0.0,
+            deductions=0.0,
+            net_salary=1200.00
+        )
+        db.session.add(default_payroll)
+
     db.session.commit()
 
     # Crear token para que pueda loguearse directamente tras crear
@@ -99,6 +117,7 @@ def create_user():
             "identification_number": new_user.identification_number
         }
     }), 201
+
 
 @api.route("/users/<int:id>", methods=["DELETE"])
 def delete_user(id):
@@ -420,3 +439,34 @@ def admin_create_event():
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": f"Error al crear evento: {str(e)}"}), 500
+
+@api.route("/payroll", methods=["GET"])
+@jwt_required()
+def get_employee_payrolls():
+    current_user_id = get_jwt_identity()
+    user = User.query.get(current_user_id)
+
+    if not user:
+        return jsonify({"error": "Usuario no encontrado"}), 404
+
+    payrolls = Payroll.query.filter_by(user_id=user.id).order_by(Payroll.month.desc()).all()
+    return jsonify([p.serialize() for p in payrolls]), 200
+
+@api.route("/payroll/<int:payroll_id>", methods=["GET"])
+@jwt_required()
+def get_payroll_detail(payroll_id):
+    current_user_id = get_jwt_identity()
+    user = User.query.get(current_user_id)
+
+    if not user:
+        return jsonify({"error": "Usuario no encontrado"}), 404
+
+    payroll = Payroll.query.get(payroll_id)
+
+    if not payroll:
+        return jsonify({"error": "Nómina no encontrada"}), 404
+
+    if payroll.user_id != user.id:
+        return jsonify({"error": "No autorizado para ver esta nómina"}), 403
+
+    return jsonify(payroll.serialize()), 200
