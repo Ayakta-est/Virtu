@@ -40,7 +40,7 @@ export const router = createBrowserRouter(
         <Route path="employee/calendar" element={<EmployeeCalendar />} />
         <Route path="/notices/:id" element={<DetailNotice />} />
         <Route path="employee/payroll" element={<PayRollPage />} />
-        <Route path="employee//payroll/:id" element={<PayrollDetailPage />} />
+        <Route path="employee/payroll/:id" element={<PayrollDetailPage />} />
 
         {/* Rutas solo para administradores */}
         <Route element={<AdminRoute> <Outlet /> </AdminRoute>}>

@@ -85,17 +85,16 @@ def create_user():
     db.session.add(new_user)
     db.session.flush()  # Obtenemos el ID sin hacer commit aún
 
-    # ✅ Crear nómina por defecto solo para empleados
+    # Crear nómina por defecto empleados
     if role == "employee":
         from datetime import date
-        from models import Payroll
+        from api.models import Payroll
 
         month = date.today().strftime("%Y-%m")
         default_payroll = Payroll(
             user_id=new_user.id,
             month=month,
-            base_salary=1200.00,
-            bonuses=0.0,
+            gross_salary=1200.00,
             deductions=0.0,
             net_salary=1200.00
         )
@@ -452,7 +451,8 @@ def get_employee_payrolls():
     payrolls = Payroll.query.filter_by(user_id=user.id).order_by(Payroll.month.desc()).all()
     return jsonify([p.serialize() for p in payrolls]), 200
 
-@api.route("/payroll/<int:payroll_id>", methods=["GET"])
+
+@api.route("/employee/payroll/<int:payroll_id>", methods=["GET"])
 @jwt_required()
 def get_payroll_detail(payroll_id):
     current_user_id = get_jwt_identity()

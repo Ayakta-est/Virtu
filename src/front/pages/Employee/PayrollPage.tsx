@@ -63,7 +63,7 @@ const PayrollPage = () => {
                 <td className="px-4 py-2">{p.netSalary.toFixed(2)} €</td>
                 <td className="px-4 py-2">
                   <button
-                    onClick={() => navigate(`/payroll/${p.id}`)}
+                    onClick={() => navigate(`/employee/payroll/${p.id}`)}
                     className="text-blue-600 hover:underline"
                   >
                     Ver detalle

@@ -4,8 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 interface PayrollDetail {
   id: number;
   month: string;
-  baseSalary: number;
-  bonuses: number;
+  grossSalary: number;
   deductions: number;
   netSalary: number;
   createdAt: string;
@@ -18,22 +17,29 @@ const PayrollDetailPage = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+
     const fetchDetail = async () => {
       try {
         const token = localStorage.getItem("token");
+        if (!id || !token) {
+          console.error("Falta ID o token");
+          return;
+        }
 
-        const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/payroll/${id}`, {
+        const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/employee/payroll/${id}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
 
+
         if (!res.ok) throw new Error("Error al cargar detalle de nómina");
 
         const data = await res.json();
+
         setPayroll(data);
       } catch (err) {
-        console.error(err);
+        console.error("Error en fetchDetail:", err);
       } finally {
         setLoading(false);
       }
@@ -56,8 +62,7 @@ const PayrollDetailPage = () => {
 
       <div className="bg-white rounded shadow p-4 space-y-2 border border-gray-200">
         <p><strong>Mes:</strong> {payroll.month}</p>
-        <p><strong>Salario base:</strong> {payroll.baseSalary.toFixed(2)} €</p>
-        <p><strong>Bonificaciones:</strong> {payroll.bonuses.toFixed(2)} €</p>
+        <p><strong>Salario base:</strong> {payroll.grossSalary.toFixed(2)} €</p>
         <p><strong>Deducciones:</strong> {payroll.deductions.toFixed(2)} €</p>
         <hr />
         <p><strong>Salario neto:</strong> {payroll.netSalary.toFixed(2)} €</p>
