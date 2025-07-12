@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import Button from "../../components/ui/Button";
 
 interface PayrollDetail {
   id: number;
@@ -17,7 +18,6 @@ const PayrollDetailPage = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-
     const fetchDetail = async () => {
       try {
         const token = localStorage.getItem("token");
@@ -32,11 +32,9 @@ const PayrollDetailPage = () => {
           },
         });
 
-
         if (!res.ok) throw new Error("Error al cargar detalle de nómina");
 
         const data = await res.json();
-
         setPayroll(data);
       } catch (err) {
         console.error("Error en fetchDetail:", err);
@@ -47,6 +45,31 @@ const PayrollDetailPage = () => {
 
     fetchDetail();
   }, [id]);
+
+  const handleDownloadPDF = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!id || !token) return;
+
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/employee/payroll/${id}/download`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) throw new Error("Error al descargar el PDF");
+
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `nomina_${id}.pdf`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Error al descargar PDF:", err);
+    }
+  };
 
   if (loading) {
     return <p className="text-center mt-8 text-gray-600">Cargando detalle de nómina...</p>;
@@ -70,18 +93,8 @@ const PayrollDetailPage = () => {
       </div>
 
       <div className="mt-6 flex justify-end gap-2">
-        <button
-          onClick={() => navigate(-1)}
-          className="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300"
-        >
-          Volver
-        </button>
-        <button
-          onClick={() => alert("Próximamente: descarga en PDF")}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-        >
-          Descargar PDF
-        </button>
+        <Button variant="ghost" onClick={() => navigate(-1)}>Volver</Button>
+        <Button variant="primary" onClick={handleDownloadPDF}>Descargar PDF</Button>
       </div>
     </div>
   );

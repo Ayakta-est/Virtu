@@ -1,7 +1,7 @@
 """
 This module takes care of starting the API Server, Loading the DB and Adding the endpoints
 """
-from flask import Flask, request, jsonify, url_for, Blueprint
+from flask import Flask, request, jsonify, url_for, Blueprint, send_file
 from api.models import db, User, News, CalendarEvent, Payroll
 from api.utils import generate_sitemap, APIException
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
@@ -10,6 +10,9 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from datetime import datetime
+from io import BytesIO
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import A4
 import uuid
 import os
 
@@ -470,3 +473,47 @@ def get_payroll_detail(payroll_id):
         return jsonify({"error": "No autorizado para ver esta nómina"}), 403
 
     return jsonify(payroll.serialize()), 200
+
+@api.route("/employee/payroll/<int:payroll_id>/download", methods=["GET"])
+@jwt_required()
+def download_payroll_pdf(payroll_id):
+    current_user_id = get_jwt_identity()
+    user = User.query.get(current_user_id)
+
+    if not user:
+        return jsonify({"error": "Usuario no encontrado"}), 404
+
+    payroll = Payroll.query.get(payroll_id)
+
+    if not payroll:
+        return jsonify({"error": "Nómina no encontrada"}), 404
+
+    if payroll.user_id != user.id:
+        return jsonify({"error": "No autorizado"}), 403
+
+    buffer = BytesIO()
+    pdf = canvas.Canvas(buffer, pagesize=A4)
+    width, height = A4
+
+    pdf.setFont("Helvetica-Bold", 16)
+    pdf.drawString(100, height - 50, f"Nómina - {payroll.month}")
+
+    pdf.setFont("Helvetica", 12)
+    pdf.drawString(50, height - 100, f"Empleado ID: {user.id}")
+    pdf.drawString(50, height - 120, f"Número identificación: {user.identification_number}")
+    pdf.drawString(50, height - 140, f"Departamento: {user.department or 'No especificado'}")
+    pdf.drawString(50, height - 180, f"Salario Bruto: {payroll.gross_salary:.2f} €")
+    pdf.drawString(50, height - 200, f"Deducciones: {payroll.deductions:.2f} €")
+    pdf.drawString(50, height - 220, f"Salario Neto: {payroll.net_salary:.2f} €")
+    pdf.setFont("Helvetica-Oblique", 10)
+    pdf.drawString(50, height - 270, f"Generado el {datetime.now().strftime('%d/%m/%Y')}")
+
+    pdf.save()
+    buffer.seek(0)
+
+    return send_file(
+        buffer,
+        as_attachment=True,
+        download_name=f"nomina_{payroll.month}.pdf",
+        mimetype='application/pdf'
+    )
