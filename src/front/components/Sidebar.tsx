@@ -91,6 +91,11 @@ const handleLogout = () => {
                   </button>
                 </li>
                 <li>
+                  <button onClick={() => goTo("admin/payroll-management")} className="hover:underline">
+                    Gestión de nóminas
+                  </button>
+                </li>
+                <li>
                   <button onClick={() => goTo("admin/users")} className="hover:underline">
                     Gestión de usuarios
                   </button>
