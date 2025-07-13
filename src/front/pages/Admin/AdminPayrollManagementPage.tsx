@@ -5,7 +5,7 @@ import Modal from "../../components/ui/Modal";
 interface Payroll {
   id: number;
   userId: number;
-  userName: string;
+  name: string;
   month: string;
   grossSalary: number;
   deductions: number;
@@ -59,8 +59,6 @@ const AdminPayrollManagementPage = () => {
     }
   };
 
-  const closeModal = () => setSelectedPayroll(null);
-
   useEffect(() => {
     fetchPayrolls();
   }, [month]);
@@ -100,7 +98,7 @@ const AdminPayrollManagementPage = () => {
           <tbody>
             {payrolls.map((p) => (
               <tr key={p.id} className="border-t border-gray-100 hover:bg-gray-50">
-                <td className="px-4 py-2">{p.userName}</td>
+                <td className="px-4 py-2">{p.name}</td>
                 <td className="px-4 py-2">{p.month}</td>
                 <td className="px-4 py-2">{p.grossSalary.toFixed(2)} €</td>
                 <td className="px-4 py-2">{p.deductions.toFixed(2)} €</td>
@@ -113,10 +111,105 @@ const AdminPayrollManagementPage = () => {
           </tbody>
         </table>
       )}
+      {selectedPayroll && (
+        <Modal
+          isOpen={!!selectedPayroll}
+          onClose={() => setSelectedPayroll(null)}
+          title={`Editar nómina de ${selectedPayroll.name}`}
+        >
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              try {
+                const token = localStorage.getItem("token");
+                const res = await fetch(
+                  `${import.meta.env.VITE_BACKEND_URL}/api/admin/payroll-management/${selectedPayroll.id}`,
+                  {
+                    method: "PUT",
+                    headers: {
+                      "Content-Type": "application/json",
+                      Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({
+                      gross_salary: selectedPayroll.grossSalary,
+                      deductions: selectedPayroll.deductions,
+                    }),
+                  }
+                );
 
-      <Modal isOpen={!!selectedPayroll} onClose={closeModal} title="Editar Nómina">
-        <p>Próximamente: Formulario de edición</p>
-      </Modal>
+                if (!res.ok) throw new Error("Error al actualizar la nómina");
+
+                alert("Nómina actualizada correctamente");
+                setSelectedPayroll(null);
+                fetchPayrolls(); // Refrescar tabla
+              } catch (err) {
+                console.error(err);
+                alert("Error al guardar los cambios");
+              }
+            }}
+            className="space-y-4"
+          >
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Salario bruto (€)</label>
+              <input
+                type="number"
+                step="0.01"
+                value={selectedPayroll.grossSalary}
+                onChange={(e) =>
+                  setSelectedPayroll({
+                    ...selectedPayroll,
+                    grossSalary: parseFloat(e.target.value) || 0,
+                    netSalary:
+                      (parseFloat(e.target.value) || 0) -
+                      (selectedPayroll.deductions ?? 0),
+                  })
+                }
+                className="w-full border px-3 py-2 rounded mt-1"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Deducciones (€)</label>
+              <input
+                type="number"
+                step="0.01"
+                value={selectedPayroll.deductions}
+                onChange={(e) =>
+                  setSelectedPayroll({
+                    ...selectedPayroll,
+                    deductions: parseFloat(e.target.value) || 0,
+                    netSalary:
+                      (selectedPayroll.grossSalary ?? 0) -
+                      (parseFloat(e.target.value) || 0),
+                  })
+                }
+                className="w-full border px-3 py-2 rounded mt-1"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Salario neto (€)</label>
+              <input
+                type="number"
+                step="0.01"
+                value={selectedPayroll.netSalary.toFixed(2)}
+                disabled
+                className="w-full border px-3 py-2 rounded mt-1 bg-gray-100"
+              />
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="ghost" onClick={() => setSelectedPayroll(null)}>
+                Cancelar
+              </Button>
+              <Button type="submit" variant="primary">
+                Guardar cambios
+              </Button>
+            </div>
+          </form>
+        </Modal>
+      )}
+
     </div>
   );
 };

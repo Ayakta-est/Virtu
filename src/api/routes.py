@@ -536,41 +536,50 @@ def get_all_payrolls_by_month():
 
 @api.route("/admin/payroll-management/generate", methods=["POST"])
 @jwt_required()
-def generate_monthly_payrolls():
+def generate_payrolls():
     current_user_id = get_jwt_identity()
-    user = User.query.get(current_user_id)
+    current_user = User.query.get(current_user_id)
 
-    if not user or user.role != "admin":
+    if not current_user or current_user.role != "admin":
         return jsonify({"error": "No autorizado"}), 403
 
     data = request.get_json()
-    month = data.get("month") or datetime.now().strftime("%Y-%m")
+    month = data.get("month")
 
-    existing = Payroll.query.filter_by(month=month).first()
-    if existing:
-        return jsonify({"error": f"Nóminas para {month} ya fueron generadas"}), 400
+    if not month:
+        return jsonify({"error": "Mes no especificado"}), 400
 
     employees = User.query.filter_by(role="employee").all()
-    created = []
+    created = 0
+    skipped = 0
 
-    for emp in employees:
-        gross = 1500.0
-        deductions = 150.0
+    for employee in employees:
+        exists = Payroll.query.filter_by(user_id=employee.id, month=month).first()
+        if exists:
+            skipped += 1
+            continue
+
+        # Puedes personalizar estos valores o calcularlos
+        gross = 2000.00
+        deductions = 250.00
         net = gross - deductions
 
-        new_payroll = Payroll(
-            user_id=emp.id,
+        payroll = Payroll(
+            user_id=employee.id,
             month=month,
             gross_salary=gross,
             deductions=deductions,
             net_salary=net,
-            details="{}"
+            details=None
         )
-        db.session.add(new_payroll)
-        created.append(new_payroll)
+        db.session.add(payroll)
+        created += 1
 
     db.session.commit()
-    return jsonify({"message": f"{len(created)} nóminas creadas para {month}"}), 201
+
+    return jsonify({
+        "message": f"Nóminas generadas: {created}. Ya existían: {skipped}."
+    }), 200
 
 @api.route("/admin/payroll-management/<int:payroll_id>", methods=["PUT"])
 @jwt_required()

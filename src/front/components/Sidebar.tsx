@@ -57,9 +57,6 @@ const handleLogout = () => {
               <button onClick={() => goTo("/employee/payroll")} className="hover:underline">Nómina</button>
             </li>
             <li>
-              <button onClick={() => goTo("/employee/timeoff")} className="hover:underline">Oficina de servicios</button>
-            </li>
-            <li>
               <button onClick={() => goTo("/contact")} className="hover:underline">Habla con nosotros</button>
             </li>
           </ul>
@@ -81,6 +78,11 @@ const handleLogout = () => {
             <nav>
               <ul className="space-y-3">
                 <li>
+                  <button onClick={() => goTo("admin/users")} className="hover:underline">
+                    Gestión de usuarios
+                  </button>
+                </li>
+                <li>
                   <button onClick={() => goTo("/admin/notices")} className="hover:underline">
                     Gestión de noticias
                   </button>
@@ -95,11 +97,7 @@ const handleLogout = () => {
                     Gestión de nóminas
                   </button>
                 </li>
-                <li>
-                  <button onClick={() => goTo("admin/users")} className="hover:underline">
-                    Gestión de usuarios
-                  </button>
-                </li>
+                
               </ul>
             </nav>
           </>

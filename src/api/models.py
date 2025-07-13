@@ -109,6 +109,7 @@ class Payroll(db.Model):
         return {
             "id": self.id,
             "userId": self.user_id,
+            "name": self.user.name if self.user else None,
             "month": self.month,
             "grossSalary": self.gross_salary,
             "deductions": self.deductions,
