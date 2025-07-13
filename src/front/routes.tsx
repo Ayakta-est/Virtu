@@ -3,6 +3,8 @@ import {
   createBrowserRouter,
   createRoutesFromElements,
   Route,
+  Navigate,
+  Outlet,
 } from "react-router-dom";
 
 import { Layout } from "./pages/Layout";
@@ -17,34 +19,53 @@ import EmployeeProfile from "./pages/Employee/EmployeeProfile";
 import NoticesList from "./pages/Admin/NoticesList";
 import EditNews from "./pages/Admin/EditNews";
 import { AdminRoute } from "./components/admin/AdminRoute";
-import { Outlet } from 'react-router-dom';
-import DetailNotice from './pages/DetailNotice';
+import DetailNotice from "./pages/DetailNotice";
 import CalendarManagementPage from "./pages/Admin/CalendarManagementPage";
 import CalendarApplicationPage from "./pages/Admin/CalendarApplicationPage";
 import AdminEmployeeCalendarPage from "./pages/Admin/AdminEmployeeCalendarPage";
 import PayRollPage from "./pages/Employee/PayrollPage";
 import PayrollDetailPage from "./pages/Employee/PayrollDetailPage";
 import AdminPayrollManagementPage from "./pages/Admin/AdminPayrollManagementPage";
+import EmployeeAssistantPage from "./pages/Employee/EmployeeAssistantPage";
+
+// Redirección si ya hay token al acceder a /loginpage
+const RedirectIfAuthenticated = ({ children }: { children: React.ReactNode }) => {
+  const token = localStorage.getItem("token");
+  return token ? <Navigate to="/" replace /> : <>{children}</>;
+};
 
 export const router = createBrowserRouter(
   createRoutesFromElements(
     <Route path="/" element={<Layout />} errorElement={<h1>Not found!</h1>}>
 
-      {/* Página pública */}
-      <Route index element={<Home />} />
-      <Route path="loginpage" element={<LoginPage />} />
+      {/* Login público (redirige si ya hay user) */}
+      <Route
+        path="loginpage"
+        element={
+          <RedirectIfAuthenticated>
+            <LoginPage />
+          </RedirectIfAuthenticated>
+        }
+      />
+
+      {/* Ruta pública (opcional) */}
       <Route path="not-authorized" element={<NotAuthorized />} />
 
-      {/* Rutas protegidas para usuarios autenticados */}
-      <Route element={<ProtectedRoute> <Outlet /> </ProtectedRoute>}>
+      {/* Rutas protegidas */}
+      <Route element={<ProtectedRoute><Outlet /></ProtectedRoute>}>
+        {/* Página de inicio protegida */}
+        <Route index element={<Home />} />
+
+        {/* Rutas para empleados */}
         <Route path="employee" element={<EmployeeProfile />} />
         <Route path="employee/calendar" element={<EmployeeCalendar />} />
-        <Route path="/notices/:id" element={<DetailNotice />} />
         <Route path="employee/payroll" element={<PayRollPage />} />
         <Route path="employee/payroll/:id" element={<PayrollDetailPage />} />
+        <Route path="/notices/:id" element={<DetailNotice />} />
+        <Route path="employee/assistant" element={<EmployeeAssistantPage />} />
 
-        {/* Rutas solo para administradores */}
-        <Route element={<AdminRoute> <Outlet /> </AdminRoute>}>
+        {/* Admin protegidas */}
+        <Route element={<AdminRoute><Outlet /></AdminRoute>}>
           <Route path="admin/users" element={<UsersPage />} />
           <Route path="admin/notices" element={<NoticesList />} />
           <Route path="admin/notices/new" element={<CreateNews />} />

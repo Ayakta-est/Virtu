@@ -1,7 +1,8 @@
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import String, Boolean, Text, DateTime, ForeignKey
+from sqlalchemy import String, Boolean, Text, DateTime, ForeignKey, Time
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime, date
+from datetime import time as dt_time
 
 db = SQLAlchemy()
 
@@ -117,3 +118,27 @@ class Payroll(db.Model):
             "details": self.details,
             "createdAt": self.created_at.isoformat(),
         }
+
+class Overtime(db.Model):
+    __tablename__ = "overtimes"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=False)
+    date: Mapped[dt_time] = mapped_column(nullable=False)
+    hours: Mapped[float] = mapped_column(nullable=False)
+    approved: Mapped[bool] = mapped_column(default=False)
+    notes: Mapped[str] = mapped_column(String(255), nullable=True)
+
+    user: Mapped["User"] = relationship(backref="overtimes")
+
+class HRAppointment(db.Model):
+    __tablename__ = "hr_appointments"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=False)
+    date: Mapped[datetime] = mapped_column(nullable=False)
+    time: Mapped[dt_time] = mapped_column(Time(), nullable=False)
+    motivo: Mapped[str] = mapped_column(String(255), nullable=True)
+    estado: Mapped[str] = mapped_column(String(20), default="pendiente")  # pendiente, confirmada, cancelada
+
+    user: Mapped["User"] = relationship(backref="hr_appointments")
