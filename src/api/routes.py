@@ -2,7 +2,7 @@
 This module takes care of starting the API Server, Loading the DB and Adding the endpoints
 """
 from flask import Flask, request, jsonify, url_for, Blueprint, send_file
-from api.models import db, User, News, CalendarEvent, Payroll
+from api.models import db, User, News, CalendarEvent, Payroll, Overtime
 from api.utils import generate_sitemap, APIException
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from flask_cors import CORS
@@ -14,8 +14,13 @@ from io import BytesIO
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
 import uuid
+from openai import OpenAI
 import os
+from dotenv import load_dotenv
 
+load_dotenv()
+
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY")) 
 api = Blueprint('api', __name__)
 
 # Allow CORS requests to this API
@@ -603,3 +608,202 @@ def update_payroll(payroll_id):
 
     db.session.commit()
     return jsonify(payroll.serialize()), 200
+
+@api.route("/chat", methods=["POST"])
+@jwt_required()
+def chat_with_assistant():
+    user_id = get_jwt_identity()
+    user = User.query.get(user_id)
+
+    if not user:
+        return jsonify({"error": "Usuario no encontrado"}), 404
+
+    data = request.get_json()
+    user_message = data.get("message", "").strip()
+
+    if user_message.lower() == "saludo_inicial":
+        return jsonify({"reply": f"Hola {user.name}, ¿en qué te puedo ayudar?"})
+
+    # 🔍 Recuperar eventos relevantes del calendario
+    eventos_usuario = CalendarEvent.query.filter_by(user_id=user.id).all()
+
+    eventos_relevantes = [
+        f"- {ev.title} ({ev.type}) del {ev.start_date.strftime('%d/%m/%Y')} al {ev.end_date.strftime('%d/%m/%Y') if ev.end_date else 'fecha sin definir'}"
+        for ev in eventos_usuario
+        if ev.type in ["vacation", "absence", "requested"]
+    ]
+
+    eventos_texto = "\n".join(eventos_relevantes) or "No tiene eventos relevantes registrados."
+
+    # 🧠 Construir el contexto completo
+    context = f"""
+Empleado: {user.name} (ID: {user.id})
+Puesto: {user.workstation or 'No asignado'}
+Departamento: {user.department or 'No asignado'}
+
+Eventos del calendario:
+{eventos_texto}
+"""
+
+    messages = [
+        {
+            "role": "system",
+            "content": (
+                "Eres un asistente interno que ayuda a los empleados con dudas sobre vacaciones, horas extra, nóminas, "
+                "citas con RRHH, y políticas de empresa. Usa el contexto proporcionado para responder con precisión. "
+                "Si el usuario pregunta por vacaciones u otros eventos, utiliza la información de su calendario para responder."
+            )
+        },
+        {
+            "role": "user",
+            "content": (
+                f"Contexto del empleado:\n{context}\n\n"
+                f"Mensaje del empleado: {user_message}"
+            )
+        }
+    ]
+
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4",
+            messages=messages,
+            temperature=0.3
+        )
+        reply = response.choices[0].message.content.strip()
+        return jsonify({"reply": reply})
+    except Exception as e:
+        print("Error al contactar con OpenAI:", e)
+        return jsonify({"error": "No se pudo generar una respuesta"}), 500
+
+@api.route("/admin/overtime", methods=["GET"])
+@jwt_required()
+def get_overtimes_by_month():
+    current_user = User.query.get(get_jwt_identity())
+    if not current_user or current_user.role != "admin":
+        return jsonify({"error": "No autorizado"}), 403
+
+    month_param = request.args.get("month")  # formato: "2025-07"
+    if not month_param:
+        return jsonify({"error": "Parámetro 'month' requerido"}), 400
+
+    try:
+        year, month = map(int, month_param.split("-"))
+    except ValueError:
+        return jsonify({"error": "Formato inválido. Usa 'YYYY-MM'"}), 400
+
+    overtimes = (
+        db.session.query(Overtime, User)
+        .join(User, Overtime.user_id == User.id)
+        .filter(db.extract("year", Overtime.date) == year)
+        .filter(db.extract("month", Overtime.date) == month)
+        .all()
+    )
+
+    result = [
+        {
+            "id": ot.id,
+            "userId": ot.user_id,
+            "name": user.name,
+            "date": ot.date.isoformat(),
+            "hours": ot.hours,
+            "approved": ot.approved,
+            "notes": ot.notes or ""
+        }
+        for ot, user in overtimes
+    ]
+
+    return jsonify(result), 200
+
+@api.route("/admin/overtime/<int:overtime_id>", methods=["PUT"])
+@jwt_required()
+def update_overtime(overtime_id):
+    current_user = User.query.get(get_jwt_identity())
+    if not current_user or current_user.role != "admin":
+        return jsonify({"error": "No autorizado"}), 403
+
+    data = request.get_json()
+    overtime = Overtime.query.get(overtime_id)
+
+    if not overtime:
+        return jsonify({"error": "Registro no encontrado"}), 404
+
+    try:
+        overtime.date = datetime.strptime(data["date"], "%Y-%m-%d").date()
+        overtime.hours = float(data["hours"])
+        overtime.notes = data.get("notes", "")
+        overtime.approved = bool(data["approved"])
+    except Exception as e:
+        print("Error al procesar datos:", e)
+        return jsonify({"error": "Datos inválidos"}), 400
+
+    db.session.commit()
+    return jsonify({"message": "Hora extra actualizada correctamente"}), 200
+
+@api.route("/admin/employees", methods=["GET"])
+@jwt_required()
+def get_all_employees():
+    current_user = User.query.get(get_jwt_identity())
+    if not current_user or current_user.role != "admin":
+        return jsonify({"error": "No autorizado"}), 403
+
+    employees = User.query.filter_by(role="employee").all()
+
+    return jsonify([
+        {
+            "id": emp.id,
+            "name": emp.name
+        } for emp in employees
+    ]), 200
+
+@api.route("/admin/overtime", methods=["POST"])
+@jwt_required()
+def create_overtime():
+    current_user = User.query.get(get_jwt_identity())
+    if not current_user or current_user.role != "admin":
+        return jsonify({"error": "No autorizado"}), 403
+
+    data = request.get_json()
+
+    try:
+        user_id = int(data["userId"])
+        date = datetime.strptime(data["date"], "%Y-%m-%d").date()
+        hours = float(data["hours"])
+        approved = bool(data["approved"])
+        notes = data.get("notes", "")
+
+        # Comprobar que el usuario existe
+        user = User.query.get(user_id)
+        if not user:
+            return jsonify({"error": "Empleado no encontrado"}), 404
+
+        overtime = Overtime(
+            user_id=user_id,
+            date=date,
+            hours=hours,
+            approved=approved,
+            notes=notes
+        )
+        db.session.add(overtime)
+        db.session.commit()
+
+        return jsonify({"message": "Hora extra añadida correctamente"}), 201
+
+    except Exception as e:
+        print("Error al crear hora extra:", e)
+        return jsonify({"error": "Datos inválidos o incompletos"}), 400
+    
+@api.route("/admin/overtime/<int:overtime_id>", methods=["DELETE"])
+@jwt_required()
+def delete_overtime(overtime_id):
+    current_user = User.query.get(get_jwt_identity())
+    if not current_user or current_user.role != "admin":
+        return jsonify({"error": "No autorizado"}), 403
+
+    overtime = Overtime.query.get(overtime_id)
+    if not overtime:
+        return jsonify({"error": "Registro no encontrado"}), 404
+
+    db.session.delete(overtime)
+    db.session.commit()
+
+    return jsonify({"message": "Hora extra eliminada"}), 200

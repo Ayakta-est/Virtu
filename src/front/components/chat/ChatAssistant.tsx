@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect } from "react";
 import ChatBubble from "./ChatBubble";
 import ChatInput from "./ChatInput";
 
+const baseUrl = import.meta.env.VITE_BACKEND_URL;
+
 type Role = "user" | "assistant";
 
 interface Message {
@@ -18,17 +20,82 @@ export default function ChatAssistant() {
     const newMessages: Message[] = [...messages, userMessage];
     setMessages(newMessages);
 
-    const res = await fetch("/api/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message }),
-    });
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${baseUrl}/api/chat`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ message }),
+      });
 
-    const data = await res.json();
-    const botMessage: Message = { role: "assistant", content: data.reply };
+      if (!res.ok) {
+        throw new Error(`Error del servidor: ${res.status}`);
+      }
 
-    setMessages([...newMessages, botMessage]);
+      const data = await res.json();
+
+      const botMessage: Message = {
+        role: "assistant",
+        content: data.reply || "No se recibió respuesta del asistente.",
+      };
+
+      setMessages([...newMessages, botMessage]);
+    } catch (error) {
+      console.error("Error en sendMessage:", error);
+
+      const errorMessage: Message = {
+        role: "assistant",
+        content:
+          "⚠️ Hubo un error al contactar con el asistente. Por favor, intenta más tarde.",
+      };
+
+      setMessages([...newMessages, errorMessage]);
+    }
   };
+
+  const loadWelcomeMessage = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${baseUrl}/api/chat`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ message: "saludo_inicial" }),
+      });
+
+      if (!res.ok) {
+        throw new Error(`Error del servidor: ${res.status}`);
+      }
+
+      const data = await res.json();
+
+      const welcomeMessage: Message = {
+        role: "assistant",
+        content: data.reply || "Hola, ¿en qué puedo ayudarte?",
+      };
+
+      setMessages([welcomeMessage]);
+    } catch (error) {
+      console.error("Error en loadWelcomeMessage:", error);
+
+      const fallbackMessage: Message = {
+        role: "assistant",
+        content:
+          "⚠️ No se pudo cargar el saludo inicial del asistente. Intenta más tarde.",
+      };
+
+      setMessages([fallbackMessage]);
+    }
+  };
+
+  useEffect(() => {
+    loadWelcomeMessage();
+  }, []);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });

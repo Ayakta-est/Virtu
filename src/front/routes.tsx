@@ -27,6 +27,7 @@ import PayRollPage from "./pages/Employee/PayrollPage";
 import PayrollDetailPage from "./pages/Employee/PayrollDetailPage";
 import AdminPayrollManagementPage from "./pages/Admin/AdminPayrollManagementPage";
 import EmployeeAssistantPage from "./pages/Employee/EmployeeAssistantPage";
+import AdminOvertimeManagementPage from "./pages/Admin/AdminOvertimeManagementPage";
 
 // Redirección si ya hay token al acceder a /loginpage
 const RedirectIfAuthenticated = ({ children }: { children: React.ReactNode }) => {
@@ -73,6 +74,7 @@ export const router = createBrowserRouter(
           <Route path="admin/calendar/application" element={<CalendarApplicationPage />} />
           <Route path="admin/calendar-management" element={<CalendarManagementPage />} />
           <Route path="admin/calendar/:identification_number" element={<AdminEmployeeCalendarPage />} />
+          <Route path="admin/overtime-management" element={<AdminOvertimeManagementPage />} />
           <Route path="admin/payroll-management" element={<AdminPayrollManagementPage />} />
         </Route>
       </Route>

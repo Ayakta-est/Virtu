@@ -121,7 +121,7 @@ const UserTable: React.FC<Props> = ({ refresh }) => {
                     setSelectedUser(u);
                     setModalOpen(true);
                   }}
-                  className={`text-blue-600 hover:underline ${u.role === "admin" ? "opacity-50 cursor-not-allowed" : ""}`}
+                  className={`text-teal-800 hover:underline ${u.role === "admin" ? "opacity-50 cursor-not-allowed" : ""}`}
                   disabled={u.role === "admin"}
                   title={u.role === "admin" ? "No puedes editar a un administrador" : ""}
                 >

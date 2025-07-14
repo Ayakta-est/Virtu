@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import Button from "../../components/ui/Button";
 import Modal from "../../components/ui/Modal";
 
+const baseUrl = import.meta.env.VITE_BACKEND_URL;
+
 interface Payroll {
   id: number;
   userId: number;
@@ -23,7 +25,7 @@ const AdminPayrollManagementPage = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/admin/payroll-management?month=${month}`, {
+      const res = await fetch(`${baseUrl}/api/admin/payroll-management?month=${month}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -40,7 +42,7 @@ const AdminPayrollManagementPage = () => {
   const generatePayrolls = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/admin/payroll-management/generate`, {
+      const res = await fetch(`${baseUrl}/api/admin/payroll-management/generate`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -82,7 +82,7 @@ export default function EmployeeCalendar() {
         <h2 className="text-xl font-bold">Mi Calendario</h2>
         <button
           onClick={() => setShowRequestModal(true)}
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+          className="bg-teal-600 text-white px-4 py-2 rounded hover:bg-teal-800 cursor-pointer"
         >
           Solicitar día libre
         </button>

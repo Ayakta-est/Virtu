@@ -1,8 +1,8 @@
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import String, Boolean, Text, DateTime, ForeignKey, Time
+from sqlalchemy import String, Boolean, Text, DateTime, ForeignKey, Date, Time
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from datetime import datetime, date
-from datetime import time as dt_time
+from datetime import date as dt_date, date
+from datetime import datetime as date_time
 
 db = SQLAlchemy()
 
@@ -42,7 +42,7 @@ class News(db.Model):
     category: Mapped[str] = mapped_column(String(50), nullable=False)
     link: Mapped[str] = mapped_column(String(100), nullable=False, unique=True)
     is_featured: Mapped[bool] = mapped_column(Boolean(), default=False, nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[date_time] = mapped_column(DateTime, default=date_time.utcnow)
 
     def serialize(self):
         return {
@@ -71,8 +71,8 @@ class CalendarEvent(db.Model):
     end_date: Mapped[date] = mapped_column(nullable=True)
     notes: Mapped[str] = mapped_column(Text, nullable=True)
 
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-    updated_at: Mapped[datetime] = mapped_column(DateTime, onupdate=datetime.utcnow, nullable=True)
+    created_at: Mapped[date_time] = mapped_column(DateTime, default=date_time.utcnow)
+    updated_at: Mapped[date_time] = mapped_column(DateTime, onupdate=date_time.utcnow, nullable=True)
 
     user: Mapped["User"] = relationship(back_populates="calendar_events")
 
@@ -102,7 +102,7 @@ class Payroll(db.Model):
     net_salary: Mapped[float] = mapped_column(nullable=False)
     details: Mapped[str] = mapped_column(Text, nullable=True)  # JSON string con desglose
 
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[date_time] = mapped_column(DateTime, default=date_time.utcnow)
 
     user: Mapped["User"] = relationship()
 
@@ -124,7 +124,7 @@ class Overtime(db.Model):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=False)
-    date: Mapped[dt_time] = mapped_column(nullable=False)
+    date: Mapped[dt_date] = mapped_column(Date, nullable=False)
     hours: Mapped[float] = mapped_column(nullable=False)
     approved: Mapped[bool] = mapped_column(default=False)
     notes: Mapped[str] = mapped_column(String(255), nullable=True)
@@ -136,8 +136,7 @@ class HRAppointment(db.Model):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=False)
-    date: Mapped[datetime] = mapped_column(nullable=False)
-    time: Mapped[dt_time] = mapped_column(Time(), nullable=False)
+    datetime: Mapped[date_time] = mapped_column(DateTime, nullable=False)
     motivo: Mapped[str] = mapped_column(String(255), nullable=True)
     estado: Mapped[str] = mapped_column(String(20), default="pendiente")  # pendiente, confirmada, cancelada
 

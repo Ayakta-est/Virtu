@@ -112,6 +112,7 @@ export default function Sidebar() {
                 <li><button onClick={() => goTo("/admin/notices")} className="hover:underline">Gestión de noticias</button></li>
                 <li><button onClick={() => goTo("/admin/calendar-management")} className="hover:underline">Gestión de calendarios</button></li>
                 <li><button onClick={() => goTo("admin/payroll-management")} className="hover:underline">Gestión de nóminas</button></li>
+                <li><button onClick={() => goTo("admin/overtime-management")} className="hover:underline">Gestión de horas extra</button></li>
               </ul>
             </nav>
           </>
